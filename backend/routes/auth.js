@@ -7,13 +7,13 @@ const bcrypt = require("bcryptjs");
 router.post("/register", async (req, res) => {
   const { email, password, name } = req.body;
 
-  // einfache Validierung
+  
   if (!email || !password || !name) {
     return res.status(400).json({ error: "Bitte email, password und name angeben" });
   }
 
   try {
-    // Prüfen, ob der Benutzer bereits existiert
+    // Prüfen, ob der Benutzer schon existiert
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(409).json({ error: "E-Mail bereits registriert" });

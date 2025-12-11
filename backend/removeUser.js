@@ -1,6 +1,6 @@
 require('dotenv').config({ path: './.env' });
 const mongoose = require('mongoose');
-const User = require('./models/User'); // Dein User-Modell importieren
+const User = require('./models/User'); // Mein User-Modell importieren
 
 async function run() {
   const email = process.argv[2];
