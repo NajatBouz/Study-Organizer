@@ -1,0 +1,6 @@
+{
+  "watch": ["server.js", "src"],
+  "ext": "js,json",
+  "ignore": ["node_modules/*", "package-lock.json", ".git/*", "*.md"],
+  "delay": 250
+}
