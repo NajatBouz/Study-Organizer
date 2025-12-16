@@ -24,7 +24,7 @@ router.post("/", auth, async (req, res) => {
   }
 });
 
-// ✅ KONTAKT AKTUALISIEREN (PUT)
+// Kontakt aktualisieren (PUT)
 router.put("/:id", auth, async (req, res) => {
   try {
     const contact = await Contact.findById(req.params.id);
@@ -35,7 +35,9 @@ router.put("/:id", auth, async (req, res) => {
 
     // Prüfen, ob der Kontakt dem Benutzer gehört
     if (contact.userId.toString() !== req.user.id) {
-      return res.status(403).json({ error: "Nicht berechtigt, diesen Kontakt zu bearbeiten" });
+      return res.status(403).json({
+        error: "Nicht berechtigt, diesen Kontakt zu bearbeiten",
+      });
     }
 
     const updatedContact = await Contact.findByIdAndUpdate(
@@ -50,11 +52,10 @@ router.put("/:id", auth, async (req, res) => {
   }
 });
 
-// Kontakt löschen
+// Kontakt löschen (DELETE)
 router.delete("/:id", auth, async (req, res) => {
   try {
-    // Debug-Logs
-    console.log("Token im Header:", req.header("Authorization"));
+    console.log("Authorization Header:", req.header("Authorization"));
     console.log("Contact ID aus URL:", req.params.id);
     console.log("User ID aus Token:", req.user.id);
 
@@ -64,18 +65,25 @@ router.delete("/:id", auth, async (req, res) => {
       return res.status(404).json({ error: "Kontakt nicht gefunden" });
     }
 
-    // Prüfen, ob der Kontakt dem Benutzer gehört
     if (contact.userId.toString() !== req.user.id) {
-      return res.status(403).json({ error: "Nicht berechtigt, diesen Kontakt zu löschen" });
+      return res.status(403).json({
+        error: "Nicht berechtigt, diesen Kontakt zu löschen",
+      });
     }
 
-    await contact.remove();
+    await Contact.findByIdAndDelete(req.params.id);
+
     res.json({ message: "Kontakt gelöscht" });
   } catch (err) {
     console.error("Fehler beim Löschen:", err.message);
     res.status(500).json({ error: "Fehler beim Löschen des Kontakts" });
   }
 });
+
+
+// startet Express 
+module.exports = router;
+
 
 
 
