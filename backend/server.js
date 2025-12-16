@@ -13,13 +13,22 @@ app.use(express.json());
 // MongoDB-Verbindung
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("MongoDB verbunden"))
-  .catch(err => console.log(err));
+  .catch(err => {
+    console.error("Fehler bei der MongoDB-Verbindung: ", err);
+    process.exit(1); // Beendet den Server, wenn die DB nicht erreichbar ist
+  });
 
 // Auth-Routen einbinden
 app.use("/api/auth", authRoute);
+console.log("Auth routes are set up");
 
 // Kontakte-Routen einbinden
-app.use("/api/contacts", contactRoute); // Kontakte-Route hinzufügen
+app.use("/api/contacts", contactRoute);
+console.log("Contact routes are set up");
 
 // Server starten
-app.listen(process.env.PORT, () => console.log(`Backend läuft auf Port ${process.env.PORT}`));
+const port = process.env.PORT || 5000; // Default Port auf 5000 setzen, wenn nicht in .env definiert
+app.listen(port, () => {
+  console.log(`Backend läuft auf Port ${port}`);
+});
+
