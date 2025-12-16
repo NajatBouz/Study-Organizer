@@ -1,12 +1,22 @@
 # Study Organizer
 
-A comprehensive study organization application with backend and frontend components.
+Study Organizer hilft dir, Studium und Arbeit effizient zu organisieren. Verwalte Kontakte, Links, Ordner und Termine an einem Ort – alles übersichtlich und einfach.
 
-## Project Structure
+## Aktueller Stand
 
-- `backend/` - Backend server code
-- `frontend/` - Frontend application code
+- Backend mit Node.js, Express und MongoDB
+- Benutzerregistrierung und Login (JWT-Authentifizierung)
+- Kontakte erstellen, bearbeiten und löschen
 
-## Getting Started
+## Geplante Features
 
-More information coming soon...
+- Frontend mit React.js
+- Links und Ordner zur Organisation
+- Termine und Aufgabenverwaltung
+- Filter- und Suchfunktionen, Erinnerungen
+
+## Tech Stack
+
+- **Backend:** Node.js, Express, MongoDB, JWT  
+- **Frontend:** React.js (in Arbeit)
+
