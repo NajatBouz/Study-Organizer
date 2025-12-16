@@ -53,6 +53,11 @@ router.put("/:id", auth, async (req, res) => {
 // Kontakt löschen
 router.delete("/:id", auth, async (req, res) => {
   try {
+    // Debug-Logs
+    console.log("Token im Header:", req.header("Authorization"));
+    console.log("Contact ID aus URL:", req.params.id);
+    console.log("User ID aus Token:", req.user.id);
+
     const contact = await Contact.findById(req.params.id);
 
     if (!contact) {
@@ -67,11 +72,11 @@ router.delete("/:id", auth, async (req, res) => {
     await contact.remove();
     res.json({ message: "Kontakt gelöscht" });
   } catch (err) {
+    console.error("Fehler beim Löschen:", err.message);
     res.status(500).json({ error: "Fehler beim Löschen des Kontakts" });
   }
 });
 
-module.exports = router;
 
 
 
