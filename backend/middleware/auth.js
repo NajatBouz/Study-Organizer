@@ -1,8 +1,10 @@
 const jwt = require("jsonwebtoken");
 
 function auth(req, res, next) {
-  // Debug: kompletten Header ausgeben
-  console.log("Authorization Header:", req.headers.authorization);
+  
+  console.log('METHOD:', req.method);
+  console.log('RAW AUTH HEADER:', req.headers.authorization);
+  console.log('BODY:', req.body);
 
   // Token aus dem Authorization-Header extrahieren
   const authHeader = req.header("Authorization");
@@ -35,6 +37,7 @@ function auth(req, res, next) {
 }
 
 module.exports = auth;
+
 
 
 
