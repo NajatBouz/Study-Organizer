@@ -6,6 +6,8 @@ require("dotenv").config();
 const authRoute = require("./routes/auth");
 const contactRoute = require("./routes/contacts");
 const linkRoute = require("./routes/links"); 
+const folderRoute = require("./routes/folders");
+
 
 const app = express();
 
@@ -31,6 +33,10 @@ console.log("Contact routes are set up");
 // Links-Routen
 app.use("/api/links", linkRoute);
 console.log("Link routes are set up");
+
+// Folder-Routen
+app.use("/api/folders", folderRoute);
+console.log("Folder routes are set up");
 
 // Server starten
 const port = process.env.PORT || 5000;

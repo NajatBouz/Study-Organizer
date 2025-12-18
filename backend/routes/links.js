@@ -1,12 +1,19 @@
 const express = require("express");
 const router = express.Router();
-const Link = require("../models/Link");  // Link-Modell importieren
+const Link = require("../models/Link");  
 const auth = require("../middleware/auth");
 
-// Alle Links des angemeldeten Users abrufen
+// Alle Links des angemeldeten Users abrufen 
 router.get("/", auth, async (req, res) => {
   try {
-    const links = await Link.find({ userId: req.user.id });
+    const filter = { userId: req.user.id };
+
+    // Wenn folderId in der URL vorhanden ist
+    if (req.query.folderId) {
+      filter.folderId = req.query.folderId;
+    }
+
+    const links = await Link.find(filter);
     res.json(links);
   } catch (err) {
     console.error("Fehler beim Abrufen der Links:", err.message);
@@ -14,10 +21,18 @@ router.get("/", auth, async (req, res) => {
   }
 });
 
-// Neuen Link erstellen
+// Neuen Link erstellen 
 router.post("/", auth, async (req, res) => {
   try {
-    const newLink = new Link({ ...req.body, userId: req.user.id });
+    const newLink = new Link({
+      title: req.body.title,
+      url: req.body.url,
+      category: req.body.category,
+      note: req.body.note,
+      folderId: req.body.folderId || null, //  Ordner-Zuordnung
+      userId: req.user.id
+    });
+
     await newLink.save();
     res.json(newLink);
   } catch (err) {
@@ -69,3 +84,4 @@ router.delete("/:id", auth, async (req, res) => {
 });
 
 module.exports = router;
+
