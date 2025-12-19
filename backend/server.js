@@ -7,7 +7,7 @@ const authRoute = require("./routes/auth");
 const contactRoute = require("./routes/contacts");
 const linkRoute = require("./routes/links"); 
 const folderRoute = require("./routes/folders");
-
+const eventRoute = require("./routes/events"); 
 
 const app = express();
 
@@ -37,6 +37,10 @@ console.log("Link routes are set up");
 // Folder-Routen
 app.use("/api/folders", folderRoute);
 console.log("Folder routes are set up");
+
+// Events-Routen
+app.use("/api/events", eventRoute);
+console.log("Event routes are set up");
 
 // Server starten
 const port = process.env.PORT || 5000;
