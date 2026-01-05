@@ -1,18 +1,12 @@
-const express = require("express");
-const router = express.Router();
-const auth = require("../middleware/auth");
-const User = require("../models/User");
+const mongoose = require("mongoose");
 
-// Account löschen
-router.delete("/me", auth, async (req, res) => {
-  try {
-    await User.findByIdAndDelete(req.user.id);
-    res.json({ message: "Account gelöscht" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Fehler beim Löschen des Accounts" });
-  }
-});
+const userSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  role: { type: String, default: "participant" }
+}, { timestamps: true });
 
-module.exports = router;
+module.exports = mongoose.model("User", userSchema); 
+
 
