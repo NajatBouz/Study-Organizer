@@ -8,7 +8,8 @@ const contactRoute = require("./routes/contacts");
 const linkRoute = require("./routes/links"); 
 const folderRoute = require("./routes/folders");
 const eventRoute = require("./routes/events"); 
-const searchRoute = require("./routes/search"); // <- nur einmal deklariert
+const searchRoute = require("./routes/search"); 
+const userRoute = require("./routes/users");
 
 const app = express();
 
@@ -46,6 +47,10 @@ console.log("Event routes are set up");
 // Search-Routen
 app.use("/api/search", searchRoute);
 console.log("Search route is set up");
+
+// User-Routen
+app.use("/api/users", userRoute);
+console.log("User routes are set up");
 
 // Server starten
 const port = process.env.PORT || 5000;
