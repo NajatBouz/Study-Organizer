@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { api, setAuthToken } from "../api";
 import { useNavigate, Link } from "react-router-dom";
+import { BookOpen, ArrowLeft } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
-  const [darkMode, setDarkMode] = useState(false); // Dark Mode Toggle
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -23,54 +23,119 @@ export default function Login() {
   };
 
   return (
-    <div className={darkMode ? "dark" : ""}>
-      <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100 dark:bg-gray-900 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
+      
+      
+      <Link 
+        to="/" 
+        className="absolute top-8 left-8 flex items-center gap-2 text-blue-200 hover:text-white transition-colors"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        <span className="font-medium">Zurück</span>
+      </Link>
+
+      
+      <div className="w-full max-w-md bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl p-8 animate-fade-in">
         
-        {/* Dark Mode Switch */}
-        <div className="absolute top-4 right-4 flex items-center space-x-2">
-          <span className="text-gray-700 dark:text-gray-300">Dark Mode</span>
-          <input
-            type="checkbox"
-            checked={darkMode}
-            onChange={() => setDarkMode(!darkMode)}
-            className="form-checkbox h-5 w-5 text-blue-600"
-          />
+       
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-800 rounded-full mb-4">
+            <BookOpen className="w-8 h-8 text-white" />
+          </div>
+          <h2 className="text-3xl font-bold text-slate-900 mb-2">Willkommen zurück</h2>
+          <p className="text-slate-600">Melde dich bei deinem Account an</p>
         </div>
 
-        <div className="w-full max-w-md bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-300 dark:border-gray-700">
-          <h2 className="text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Login</h2>
+        
+        {message && (
+          <div className={`mb-6 p-4 rounded-lg ${
+            message.includes("erfolgreich") 
+              ? "bg-green-100 text-green-700 border border-green-300" 
+              : "bg-red-100 text-red-700 border border-red-300"
+          }`}>
+            {message}
+          </div>
+        )}
 
-          {message && <p className="mb-4 text-green-500">{message}</p>}
-
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+       
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Email-Adresse
+            </label>
             <input
               type="email"
-              placeholder="Email"
+              placeholder="deine@email.de"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="w-full p-2 rounded border border-gray-400 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500"
+              required
+              className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Passwort
+            </label>
             <input
               type="password"
-              placeholder="Passwort"
+              placeholder="••••••••"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="w-full p-2 rounded border border-gray-400 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-blue-500"
+              required
+              className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             />
-            <button
-              type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-            >
-              Login
-            </button>
-          </form>
+          </div>
 
-          <p className="mt-4 text-gray-700 dark:text-gray-300">
-            Noch keinen Account? <Link className="text-blue-500 hover:underline" to="/register">Hier registrieren</Link>
+          <button
+            type="submit"
+            className="w-full bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
+          >
+            Anmelden
+          </button>
+        </form>
+
+       
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-slate-300"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-4 bg-white text-slate-500">oder</span>
+          </div>
+        </div>
+
+       
+        <div className="text-center">
+          <p className="text-slate-600">
+            Noch keinen Account?{" "}
+            <Link 
+              to="/register" 
+              className="font-semibold text-blue-600 hover:text-blue-800 transition-colors"
+            >
+              Jetzt registrieren
+            </Link>
           </p>
         </div>
       </div>
+
+      
+      <style>{`
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-fade-in {
+          animation: fade-in 0.6s ease-out;
+        }
+      `}</style>
     </div>
   );
 }
-
