@@ -10,17 +10,18 @@ export default function Login() {
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await api.post("/auth/login", { email, password });
-      localStorage.setItem("token", res.data.token);
-      setAuthToken(res.data.token);
-      setMessage("Login erfolgreich!");
-      navigate("/dashboard");
-    } catch (err) {
-      setMessage(err.response?.data?.error || "Fehler beim Login");
-    }
-  };
+  e.preventDefault();
+  try {
+    const res = await api.post("/auth/login", { email, password });
+    localStorage.setItem("token", res.data.token);
+    localStorage.setItem("user", JSON.stringify(res.data.user)); //  User-Daten speichern
+    setAuthToken(res.data.token);
+    setMessage("Login erfolgreich!");
+    navigate("/dashboard");
+  } catch (err) {
+    setMessage(err.response?.data?.error || "Fehler beim Login");
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">

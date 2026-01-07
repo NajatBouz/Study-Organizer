@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { DarkModeProvider } from "./contexts/DarkModeContext";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -7,11 +8,12 @@ import Contacts from "./pages/Contacts";
 import Links from "./pages/Links";
 import Folders from "./pages/Folders";
 import Events from "./pages/Events";
+import Search from "./pages/Search";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
-    <div className="dark bg-gray-900 min-h-screen text-gray-100">
+    <DarkModeProvider>
       <Router>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -62,9 +64,18 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/search"
+            element={
+              <ProtectedRoute>
+                <Search />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </Router>
-    </div>
+    </DarkModeProvider>
   );
 }
 
