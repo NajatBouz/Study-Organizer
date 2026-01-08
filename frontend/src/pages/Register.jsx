@@ -24,7 +24,7 @@ export default function Register() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
       
-      
+      {/* Back Button */}
       <Link 
         to="/" 
         className="absolute top-8 left-8 flex items-center gap-2 text-blue-200 hover:text-white transition-colors"
@@ -33,10 +33,10 @@ export default function Register() {
         <span className="font-medium">Zurück</span>
       </Link>
 
-      
+      {/* Register Card */}
       <div className="w-full max-w-md bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl p-8 animate-fade-in">
         
-        
+        {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-800 rounded-full mb-4">
             <BookOpen className="w-8 h-8 text-white" />
@@ -45,7 +45,7 @@ export default function Register() {
           <p className="text-slate-600">Registriere dich und starte durch</p>
         </div>
 
-        
+        {/* Message */}
         {message && (
           <div className={`mb-6 p-4 rounded-lg ${
             message.includes("erfolgreich") 
@@ -56,7 +56,7 @@ export default function Register() {
           </div>
         )}
 
-        
+        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -111,7 +111,7 @@ export default function Register() {
           </button>
         </form>
 
-        
+        {/* Divider */}
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-slate-300"></div>
@@ -121,7 +121,7 @@ export default function Register() {
           </div>
         </div>
 
-        
+        {/* Login Link */}
         <div className="text-center">
           <p className="text-slate-600">
             Hast du schon einen Account?{" "}
@@ -134,23 +134,23 @@ export default function Register() {
           </p>
         </div>
 
-        
+        {/* Terms & Privacy - UPDATED */}
         <div className="mt-6 text-center">
           <p className="text-xs text-slate-500">
             Mit der Registrierung stimmst du unseren{" "}
-            <a href="#" className="text-blue-600 hover:underline">
+            <Link to="/nutzungsbedingungen" className="text-blue-600 hover:underline">
               Nutzungsbedingungen
-            </a>{" "}
+            </Link>{" "}
             und der{" "}
-            <a href="#" className="text-blue-600 hover:underline">
+            <Link to="/datenschutz" className="text-blue-600 hover:underline">
               Datenschutzerklärung
-            </a>{" "}
+            </Link>{" "}
             zu.
           </p>
         </div>
       </div>
 
-      
+      {/* Animation */}
       <style>{`
         @keyframes fade-in {
           from {

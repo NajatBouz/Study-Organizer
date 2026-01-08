@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { DarkModeProvider } from "./contexts/DarkModeContext";
+import { LanguageProvider } from "./contexts/LanguageContext";  
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -10,72 +11,80 @@ import Folders from "./pages/Folders";
 import Events from "./pages/Events";
 import Search from "./pages/Search";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Impressum from "./pages/Impressum";
+import Datenschutz from "./pages/Datenschutz";
+import Nutzungsbedingungen from "./pages/Nutzungsbedingungen";
 
 function App() {
   return (
-    <DarkModeProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+    <LanguageProvider>           
+      <DarkModeProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/impressum" element={<Impressum />} />
+            <Route path="/datenschutz" element={<Datenschutz />} />
+            <Route path="/nutzungsbedingungen" element={<Nutzungsbedingungen />} />
 
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/contacts"
-            element={
-              <ProtectedRoute>
-                <Contacts />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/contacts"
+              element={
+                <ProtectedRoute>
+                  <Contacts />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/links"
-            element={
-              <ProtectedRoute>
-                <Links />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/links"
+              element={
+                <ProtectedRoute>
+                  <Links />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/folders"
-            element={
-              <ProtectedRoute>
-                <Folders />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/folders"
+              element={
+                <ProtectedRoute>
+                  <Folders />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/events"
-            element={
-              <ProtectedRoute>
-                <Events />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/events"
+              element={
+                <ProtectedRoute>
+                  <Events />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/search"
-            element={
-              <ProtectedRoute>
-                <Search />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </Router>
-    </DarkModeProvider>
+            <Route
+              path="/search"
+              element={
+                <ProtectedRoute>
+                  <Search />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </Router>
+      </DarkModeProvider>
+    </LanguageProvider>           
   );
 }
 

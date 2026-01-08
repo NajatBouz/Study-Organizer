@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { api, setAuthToken } from "../api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Link as LinkIcon, Plus, Edit2, Trash2, ExternalLink, Tag, FileText, ArrowLeft, X, Save } from "lucide-react";
 import { useDarkMode } from "../contexts/DarkModeContext";
+import { useLanguage } from "../contexts/LanguageContext";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 export default function Links() {
   const [links, setLinks] = useState([]);
@@ -12,10 +14,13 @@ export default function Links() {
   const [linkToDelete, setLinkToDelete] = useState(null);
   const [editingLink, setEditingLink] = useState(null);
   const [message, setMessage] = useState("");
+  const [highlightId, setHighlightId] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { isDarkMode } = useDarkMode();
+  const { t } = useLanguage();
+  const linkRefs = useRef({});
 
-  // Form State
   const [formData, setFormData] = useState({
     title: "",
     url: "",
@@ -25,7 +30,20 @@ export default function Links() {
 
   useEffect(() => {
     loadLinks();
-  }, []);
+    
+    const params = new URLSearchParams(location.search);
+    const highlight = params.get("highlight");
+    if (highlight) {
+      setHighlightId(highlight);
+      setTimeout(() => {
+        const element = linkRefs.current[highlight];
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 100);
+      setTimeout(() => setHighlightId(null), 1500);
+    }
+  }, [location]);
 
   const loadLinks = () => {
     const token = localStorage.getItem("token");
@@ -35,7 +53,7 @@ export default function Links() {
       .then(res => setLinks(res.data))
       .catch(err => {
         console.log(err);
-        setMessage("Fehler beim Laden der Links");
+        setMessage(t("error"));
       });
   };
 
@@ -44,19 +62,17 @@ export default function Links() {
     
     try {
       if (editingLink) {
-        // Update existing link
         await api.put(`/links/${editingLink._id}`, formData);
-        setMessage("Link erfolgreich aktualisiert!");
+        setMessage(t("linkUpdated"));
       } else {
-        // Create new link
         await api.post("/links", formData);
-        setMessage("Link erfolgreich hinzugefügt!");
+        setMessage(t("linkCreated"));
       }
       
       loadLinks();
       closeModal();
     } catch (err) {
-      setMessage(err.response?.data?.error || "Fehler beim Speichern des Links");
+      setMessage(err.response?.data?.error || t("error"));
     }
   };
 
@@ -70,12 +86,12 @@ export default function Links() {
 
     try {
       await api.delete(`/links/${linkToDelete}`);
-      setMessage("Link erfolgreich gelöscht!");
+      setMessage(t("linkDeleted"));
       loadLinks();
       setShowDeleteModal(false);
       setLinkToDelete(null);
     } catch (err) {
-      setMessage(err.response?.data?.error || "Fehler beim Löschen des Links");
+      setMessage(err.response?.data?.error || t("error"));
       setShowDeleteModal(false);
       setLinkToDelete(null);
     }
@@ -114,14 +130,11 @@ export default function Links() {
   };
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900' : 'bg-gradient-to-br from-gray-50 via-blue-50 to-gray-50'}`}>
-      {/* Header */}
-      <Navbar title="Meine Links" subtitle={`${links.length} Links gespeichert`} />
+    <div className={`min-h-screen flex flex-col ${isDarkMode ? 'bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900' : 'bg-gradient-to-br from-gray-50 via-blue-50 to-gray-50'}`}>
+      <Navbar title={t("myLinks")} subtitle={`${links.length} ${t("linksSaved")}`} />
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20">
+      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         
-        {/* Back Button & Add Button Row */}
         <div className="flex items-center justify-start gap-4 mb-6">
           <button
             onClick={() => navigate("/dashboard")}
@@ -132,7 +145,7 @@ export default function Links() {
             }`}
           >
             <ArrowLeft className="w-4 h-4" />
-            <span className="font-medium">Zurück</span>
+            <span className="font-medium">{t("back")}</span>
           </button>
 
           <button
@@ -140,14 +153,13 @@ export default function Links() {
             className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
           >
             <Plus className="w-5 h-5" />
-            <span className="font-semibold">Link hinzufügen</span>
+            <span className="font-semibold">{t("addLink")}</span>
           </button>
         </div>
 
-        {/* Message */}
         {message && (
           <div className={`mb-6 p-4 rounded-lg ${
-            message.includes("erfolgreich") 
+            message.includes(t("success")) || message.includes("erfolgreich") || message.includes("successfully")
               ? isDarkMode ? "bg-green-500/20 text-green-200 border border-green-400/30" : "bg-green-100 text-green-700 border border-green-300"
               : isDarkMode ? "bg-red-500/20 text-red-200 border border-red-400/30" : "bg-red-100 text-red-700 border border-red-300"
           }`}>
@@ -155,21 +167,20 @@ export default function Links() {
           </div>
         )}
 
-        {/* Links Grid */}
         {links.length === 0 ? (
           <div className="text-center py-20 mt-16">
             <LinkIcon className={`w-20 h-20 mx-auto mb-4 opacity-50 ${isDarkMode ? 'text-purple-300' : 'text-gray-400'}`} />
             <h3 className={`text-2xl font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              Keine Links vorhanden
+              {t("noLinks")}
             </h3>
-            <p className={`mb-6 ${isDarkMode ? 'text-blue-200' : 'text-gray-600'}`}>
-              Füge deinen ersten Link hinzu!
+            <p className={`mb-6 ${isDarkMode ? 'text-purple-200' : 'text-gray-600'}`}>
+              {t("addFirstLink")}
             </p>
             <button
               onClick={openAddModal}
               className="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg font-semibold"
             >
-              Link hinzufügen
+              {t("addLink")}
             </button>
           </div>
         ) : (
@@ -177,13 +188,17 @@ export default function Links() {
             {links.map(link => (
               <div
                 key={link._id}
+                ref={el => linkRefs.current[link._id] = el}
                 className={`rounded-lg p-4 border transition-all duration-300 hover:shadow-xl hover:scale-105 ${
-                  isDarkMode
-                    ? 'bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15'
-                    : 'bg-white border-gray-200 shadow-lg hover:shadow-xl'
+                  highlightId === link._id
+                    ? isDarkMode 
+                      ? 'bg-purple-500/30 border-purple-400 shadow-2xl shadow-purple-500/50 scale-105'
+                      : 'bg-purple-100 border-purple-400 shadow-2xl shadow-purple-300/50 scale-105'
+                    : isDarkMode
+                      ? 'bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15'
+                      : 'bg-white border-gray-200 shadow-lg hover:shadow-xl'
                 }`}
               >
-                {/* Link Header */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
@@ -191,39 +206,42 @@ export default function Links() {
                     }`}>
                       <LinkIcon className="w-4 h-4 text-white" />
                     </div>
-                    <div className="min-w-0 flex-1">
+                    <div className="flex-1 min-w-0">
                       <h3 className={`text-base font-bold truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                         {link.title}
                       </h3>
-                      <p className={`text-xs truncate ${isDarkMode ? 'text-purple-200' : 'text-gray-600'}`}>
+                      <p className={`text-xs truncate ${isDarkMode ? 'text-purple-200' : 'text-gray-500'}`}>
                         {getDomainFromUrl(link.url)}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Link URL */}
-                <a
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`flex items-center gap-1.5 mb-3 p-2 rounded-md transition-all group ${
-                    isDarkMode
-                      ? 'text-blue-300 hover:text-blue-200 bg-white/5 hover:bg-white/10'
-                      : 'text-blue-600 hover:text-blue-700 bg-gray-50 hover:bg-gray-100'
-                  }`}
-                >
-                  <ExternalLink className="w-3 h-3 flex-shrink-0 group-hover:scale-110 transition-transform" />
-                  <span className="text-xs truncate">{link.url}</span>
-                </a>
+                <div className="space-y-2 mb-3">
+                  {link.url && (
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`flex items-center gap-1.5 text-xs hover:underline ${isDarkMode ? 'text-purple-300' : 'text-purple-600'}`}
+                    >
+                      <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                      <span className="truncate">{t("visit")}</span>
+                    </a>
+                  )}
 
-                {/* Category & Note */}
-                <div className="space-y-1.5 mb-3">
+                  {link.note && (
+                    <div className={`flex items-start gap-1.5 ${isDarkMode ? 'text-purple-100' : 'text-gray-700'}`}>
+                      <FileText className={`w-3 h-3 mt-0.5 flex-shrink-0 ${isDarkMode ? 'text-purple-300' : 'text-purple-500'}`} />
+                      <p className="text-xs line-clamp-2">{link.note}</p>
+                    </div>
+                  )}
+
                   {link.category && (
                     <div className="flex items-center gap-1.5">
                       <Tag className={`w-3 h-3 ${isDarkMode ? 'text-purple-300' : 'text-purple-500'}`} />
                       <span className={`text-xs px-2 py-0.5 rounded-full border ${
-                        isDarkMode
+                        isDarkMode 
                           ? 'bg-purple-500/20 border-purple-400/30 text-purple-200'
                           : 'bg-purple-50 border-purple-200 text-purple-700'
                       }`}>
@@ -231,16 +249,8 @@ export default function Links() {
                       </span>
                     </div>
                   )}
-                  
-                  {link.note && (
-                    <div className={`flex items-start gap-1.5 ${isDarkMode ? 'text-blue-100' : 'text-gray-700'}`}>
-                      <FileText className={`w-3 h-3 mt-0.5 flex-shrink-0 ${isDarkMode ? 'text-blue-300' : 'text-blue-500'}`} />
-                      <p className="text-xs line-clamp-2">{link.note}</p>
-                    </div>
-                  )}
                 </div>
 
-                {/* Actions */}
                 <div className={`flex gap-1.5 pt-3 border-t ${isDarkMode ? 'border-white/10' : 'border-gray-200'}`}>
                   <button
                     onClick={() => openEditModal(link)}
@@ -251,7 +261,7 @@ export default function Links() {
                     }`}
                   >
                     <Edit2 className="w-3 h-3" />
-                    <span className="font-medium">Bearbeiten</span>
+                    <span className="font-medium">{t("edit")}</span>
                   </button>
                   <button
                     onClick={() => handleDelete(link._id)}
@@ -262,7 +272,7 @@ export default function Links() {
                     }`}
                   >
                     <Trash2 className="w-3 h-3" />
-                    <span className="font-medium">Löschen</span>
+                    <span className="font-medium">{t("delete")}</span>
                   </button>
                 </div>
               </div>
@@ -271,7 +281,6 @@ export default function Links() {
         )}
       </div>
 
-      {/* Add/Edit Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className={`rounded-2xl p-8 max-w-md w-full shadow-2xl border animate-fade-in ${
@@ -279,10 +288,9 @@ export default function Links() {
               ? 'bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 border-white/20'
               : 'bg-white border-gray-200'
           }`}>
-            {/* Modal Header */}
             <div className="flex items-center justify-between mb-6">
               <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                {editingLink ? "Link bearbeiten" : "Neuer Link"}
+                {editingLink ? t("editLink") : t("newLink")}
               </h2>
               <button
                 onClick={closeModal}
@@ -294,11 +302,10 @@ export default function Links() {
               </button>
             </div>
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-purple-200' : 'text-gray-700'}`}>
-                  Titel *
+                  {t("title")} *
                 </label>
                 <input
                   type="text"
@@ -310,13 +317,13 @@ export default function Links() {
                       ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:ring-purple-500'
                       : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-purple-500'
                   } focus:outline-none focus:ring-2 focus:border-transparent`}
-                  placeholder="z.B. GitHub Repository"
+                  placeholder="Google"
                 />
               </div>
 
               <div>
                 <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-purple-200' : 'text-gray-700'}`}>
-                  URL *
+                  {t("url")} *
                 </label>
                 <input
                   type="url"
@@ -328,13 +335,13 @@ export default function Links() {
                       ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:ring-purple-500'
                       : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-purple-500'
                   } focus:outline-none focus:ring-2 focus:border-transparent`}
-                  placeholder="https://beispiel.de"
+                  placeholder="https://google.com"
                 />
               </div>
 
               <div>
                 <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-purple-200' : 'text-gray-700'}`}>
-                  Kategorie
+                  {t("category")}
                 </label>
                 <input
                   type="text"
@@ -345,19 +352,19 @@ export default function Links() {
                       ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:ring-purple-500'
                       : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-purple-500'
                   } focus:outline-none focus:ring-2 focus:border-transparent`}
-                  placeholder="z.B. Uni, Arbeit, Privat"
+                  placeholder="z.B. Arbeit, Uni, Privat"
                 />
               </div>
 
               <div>
                 <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-purple-200' : 'text-gray-700'}`}>
-                  Notiz
+                  {t("note")}
                 </label>
                 <textarea
                   value={formData.note}
                   onChange={(e) => setFormData({ ...formData, note: e.target.value })}
                   rows="3"
-                  className={`w-full px-4 py-3 rounded-lg border transition-all resize-none ${
+                  className={`w-full px-4 py-3 rounded-lg border transition-all ${
                     isDarkMode
                       ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:ring-purple-500'
                       : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-purple-500'
@@ -366,7 +373,6 @@ export default function Links() {
                 />
               </div>
 
-              {/* Form Actions */}
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
@@ -377,14 +383,14 @@ export default function Links() {
                       : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                   }`}
                 >
-                  Abbrechen
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg font-semibold"
                 >
                   <Save className="w-5 h-5" />
-                  {editingLink ? "Aktualisieren" : "Hinzufügen"}
+                  {editingLink ? t("update") : t("add")}
                 </button>
               </div>
             </form>
@@ -392,7 +398,6 @@ export default function Links() {
         </div>
       )}
 
-      {/* Lösch bestätigungs Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className={`rounded-2xl p-8 max-w-md w-full shadow-2xl border animate-fade-in ${
@@ -402,11 +407,11 @@ export default function Links() {
           }`}>
             <div className="flex items-center justify-between mb-6">
               <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                Link löschen?
+                {t("delete")} Link?
               </h2>
             </div>
             <p className={`mb-8 ${isDarkMode ? 'text-blue-200' : 'text-gray-600'}`}>
-              Möchtest du diesen Link wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.
+              {t("deleteLinkConfirm")}
             </p>
             <div className="flex gap-3">
               <button
@@ -418,20 +423,19 @@ export default function Links() {
                   isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                 }`}
               >
-                Abbrechen
+                {t("cancel")}
               </button>
               <button
                 onClick={confirmDelete}
                 className="flex-1 px-4 py-3 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg font-semibold"
               >
-                Löschen
+                {t("delete")}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Animation Styles */}
       <style>{`
         @keyframes fade-in {
           from {
@@ -448,6 +452,8 @@ export default function Links() {
           animation: fade-in 0.2s ease-out;
         }
       `}</style>
+
+      <Footer />
     </div>
   );
 }
