@@ -7,6 +7,7 @@ const authRoute = require("./routes/auth");
 const contactRoute = require("./routes/contacts");
 const linkRoute = require("./routes/links"); 
 const folderRoute = require("./routes/folders");
+const fileRoute = require("./routes/files");  // <-- NEU
 const eventRoute = require("./routes/events"); 
 const searchRoute = require("./routes/search"); 
 const userRoute = require("./routes/users");
@@ -40,6 +41,10 @@ console.log("Link routes are set up");
 app.use("/api/folders", folderRoute);
 console.log("Folder routes are set up");
 
+// File-Routen  
+app.use("/api/files", fileRoute);
+console.log("File routes are set up");
+
 // Events-Routen
 app.use("/api/events", eventRoute);
 console.log("Event routes are set up");
@@ -57,5 +62,4 @@ const port = process.env.PORT || 5000;
 app.listen(port, () => {
   console.log(`Backend läuft auf Port ${port}`);
 });
-
 
