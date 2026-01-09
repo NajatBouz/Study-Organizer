@@ -175,6 +175,7 @@ const translations = {
     resultsFound: "Ergebnis",
     resultsFoundPlural: "Ergebnisse",
     noResults: "Keine Ergebnisse gefunden",
+    tryDifferentSearch: "Versuche eine andere Suchanfrage",
     
     // Common
     loading: "Lädt...",
@@ -309,6 +310,7 @@ const translations = {
     resultsFound: "result",
     resultsFoundPlural: "results",
     noResults: "No results found",
+    tryDifferentSearch: "Try a different search term",
     
     // Common
     loading: "Loading...",

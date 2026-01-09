@@ -10,23 +10,23 @@ export default function Login() {
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const res = await api.post("/auth/login", { email, password });
-    localStorage.setItem("token", res.data.token);
-    localStorage.setItem("user", JSON.stringify(res.data.user)); //  User-Daten speichern
-    setAuthToken(res.data.token);
-    setMessage("Login erfolgreich!");
-    navigate("/dashboard");
-  } catch (err) {
-    setMessage(err.response?.data?.error || "Fehler beim Login");
-  }
-};
+    e.preventDefault();
+    try {
+      const res = await api.post("/auth/login", { email, password });
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      setAuthToken(res.data.token);
+      setMessage("Login erfolgreich! Du wirst weitergeleitet...");
+      setTimeout(() => navigate("/dashboard"), 1500);
+    } catch (err) {
+      setMessage(err.response?.data?.error || "Login fehlgeschlagen");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
       
-      
+      {/* Back Button */}
       <Link 
         to="/" 
         className="absolute top-8 left-8 flex items-center gap-2 text-blue-200 hover:text-white transition-colors"
@@ -35,10 +35,10 @@ export default function Login() {
         <span className="font-medium">Zurück</span>
       </Link>
 
-      
+      {/* Login Card */}
       <div className="w-full max-w-md bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl p-8 animate-fade-in">
         
-       
+        {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-800 rounded-full mb-4">
             <BookOpen className="w-8 h-8 text-white" />
@@ -47,7 +47,7 @@ export default function Login() {
           <p className="text-slate-600">Melde dich bei deinem Account an</p>
         </div>
 
-        
+        {/* Message */}
         {message && (
           <div className={`mb-6 p-4 rounded-lg ${
             message.includes("erfolgreich") 
@@ -58,7 +58,7 @@ export default function Login() {
           </div>
         )}
 
-       
+        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -88,6 +88,16 @@ export default function Login() {
             />
           </div>
 
+          {/* Forgot Password Link */}
+          <div className="text-right">
+            <Link 
+              to="/forgot-password" 
+              className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+            >
+              Passwort vergessen?
+            </Link>
+          </div>
+
           <button
             type="submit"
             className="w-full bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
@@ -96,7 +106,7 @@ export default function Login() {
           </button>
         </form>
 
-       
+        {/* Divider */}
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-slate-300"></div>
@@ -106,10 +116,10 @@ export default function Login() {
           </div>
         </div>
 
-       
+        {/* Register Link */}
         <div className="text-center">
           <p className="text-slate-600">
-            Noch keinen Account?{" "}
+            Noch kein Account?{" "}
             <Link 
               to="/register" 
               className="font-semibold text-blue-600 hover:text-blue-800 transition-colors"
@@ -120,7 +130,7 @@ export default function Login() {
         </div>
       </div>
 
-      
+      {/* Animation */}
       <style>{`
         @keyframes fade-in {
           from {

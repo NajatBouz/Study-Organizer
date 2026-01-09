@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, setAuthToken } from "../api";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Search as SearchIcon, Users, LinkIcon, Calendar, ArrowLeft, ExternalLink, Mail, Phone } from "lucide-react";
+import { Search as SearchIcon, Users, LinkIcon, Calendar, ArrowLeft, ExternalLink, Mail, Phone, Folder } from "lucide-react";
 import { useDarkMode } from "../contexts/DarkModeContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import Navbar from "../components/Navbar";
@@ -30,7 +30,8 @@ export default function Search() {
 
     try {
       const response = await api.get(`/search?q=${encodeURIComponent(searchQuery)}`);
-      setResults(response.data);
+      // Ensure response is an array
+      setResults(Array.isArray(response.data) ? response.data : []);
     } catch (err) {
       console.error(err);
       setResults([]);
@@ -56,6 +57,7 @@ export default function Search() {
       case "contact": return Users;
       case "link": return LinkIcon;
       case "event": return Calendar;
+      case "folder": return Folder;
       default: return SearchIcon;
     }
   };
@@ -65,6 +67,7 @@ export default function Search() {
       case "contact": return isDarkMode ? "from-blue-400 to-blue-600" : "from-blue-500 to-blue-700";
       case "link": return isDarkMode ? "from-purple-400 to-purple-600" : "from-purple-500 to-purple-700";
       case "event": return isDarkMode ? "from-green-400 to-green-600" : "from-green-500 to-green-700";
+      case "folder": return isDarkMode ? "from-yellow-400 to-yellow-600" : "from-yellow-500 to-yellow-700";
       default: return isDarkMode ? "from-gray-400 to-gray-600" : "from-gray-500 to-gray-700";
     }
   };
@@ -138,6 +141,7 @@ export default function Search() {
                     {category.type === "contact" && t("contacts")}
                     {category.type === "link" && t("links")}
                     {category.type === "event" && t("events")}
+                    {category.type === "folder" && t("folders")}
                     <span className={`text-sm font-normal ${isDarkMode ? 'text-blue-200' : 'text-gray-500'}`}>
                       ({category.results.length})
                     </span>
@@ -148,10 +152,22 @@ export default function Search() {
                       const Icon = getResultIcon(category.type);
                       const color = getResultColor(category.type);
 
+                      // Build navigation link with highlight
+                      const getNavigationLink = () => {
+                        switch(category.type) {
+                          case "contact": return `/contacts?highlight=${item._id}`;
+                          case "link": return `/links?highlight=${item._id}`;
+                          case "event": return `/events?highlight=${item._id}`;
+                          case "folder": return `/folders?highlight=${item._id}`;
+                          default: return "#";
+                        }
+                      };
+
                       return (
                         <div
                           key={item._id}
-                          className={`rounded-lg p-4 border transition-all duration-300 hover:shadow-xl hover:scale-105 ${
+                          onClick={() => navigate(getNavigationLink())}
+                          className={`rounded-lg p-4 border transition-all duration-300 hover:shadow-xl hover:scale-105 cursor-pointer ${
                             isDarkMode
                               ? 'bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15'
                               : 'bg-white border-gray-200 shadow-lg hover:shadow-xl'
@@ -232,6 +248,20 @@ export default function Search() {
                                   {item.description && (
                                     <p className={`text-xs line-clamp-2 ${isDarkMode ? 'text-green-100' : 'text-gray-600'}`}>
                                       {item.description}
+                                    </p>
+                                  )}
+                                </>
+                              )}
+
+                              {/* Folder */}
+                              {category.type === "folder" && (
+                                <>
+                                  <h3 className={`text-base font-bold mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                    {item.name}
+                                  </h3>
+                                  {item.createdAt && (
+                                    <p className={`text-xs ${isDarkMode ? 'text-yellow-200' : 'text-gray-600'}`}>
+                                      {t("created")}: {new Date(item.createdAt).toLocaleDateString("de-DE", { day: "2-digit", month: "short", year: "numeric" })}
                                     </p>
                                   )}
                                 </>

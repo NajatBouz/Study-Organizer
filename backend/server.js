@@ -7,10 +7,11 @@ const authRoute = require("./routes/auth");
 const contactRoute = require("./routes/contacts");
 const linkRoute = require("./routes/links"); 
 const folderRoute = require("./routes/folders");
-const fileRoute = require("./routes/files");  // <-- NEU
+const fileRoute = require("./routes/files");  
 const eventRoute = require("./routes/events"); 
 const searchRoute = require("./routes/search"); 
 const userRoute = require("./routes/users");
+const passwordResetRoute = require("./routes/passwordReset");
 
 const app = express();
 
@@ -56,6 +57,10 @@ console.log("Search route is set up");
 // User-Routen
 app.use("/api/users", userRoute);
 console.log("User routes are set up");
+
+// Password Reset-Routen
+app.use("/api/auth", passwordResetRoute);
+console.log("Password Reset routes are set up");
 
 // Server starten
 const port = process.env.PORT || 5000;

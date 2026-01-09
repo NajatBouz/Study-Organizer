@@ -14,6 +14,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Impressum from "./pages/Impressum";
 import Datenschutz from "./pages/Datenschutz";
 import Nutzungsbedingungen from "./pages/Nutzungsbedingungen";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 function App() {
   return (
@@ -27,6 +29,8 @@ function App() {
             <Route path="/impressum" element={<Impressum />} />
             <Route path="/datenschutz" element={<Datenschutz />} />
             <Route path="/nutzungsbedingungen" element={<Nutzungsbedingungen />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             <Route
               path="/dashboard"
@@ -80,6 +84,7 @@ function App() {
                   <Search />
                 </ProtectedRoute>
               }
+              
             />
           </Routes>
         </Router>
