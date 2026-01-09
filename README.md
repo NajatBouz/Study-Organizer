@@ -1,6 +1,5 @@
 # Study Organizer
-
-Study Organizer hilft dir, Studium und Arbeit effizient zu organisieren. Verwalte Kontakte, Links, Ordner und Termine an einem Ort – alles übersichtlich und einfach.
+Study Organizer unterstützt dich dabei, deine Kursteilnahme zu begleiten und zu organisieren. Verwalte Kontakte, Links, Ordner und Termine an einem Ort – alles übersichtlich und einfach.
 
 ## Aktueller Stand
 
