@@ -33,7 +33,14 @@ export default function Home() {
             {/* Buttons direkt unter dem Text */}
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
               <Link to="/login" className="w-full sm:w-auto">
-                <button className="w-full sm:w-64 bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white font-bold text-lg px-8 py-4 rounded-xl shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 transform hover:scale-105">
+                <button 
+                  className="w-full sm:w-64 text-white font-bold text-lg px-8 py-4 rounded-xl shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 transform hover:scale-105"
+                  style={{
+                    background: 'linear-gradient(to right, #68A4F1, #4A8BD8)'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'linear-gradient(to right, #5B95E0, #3A7BC7)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'linear-gradient(to right, #68A4F1, #4A8BD8)'}
+                >
                   Login
                 </button>
               </Link>
