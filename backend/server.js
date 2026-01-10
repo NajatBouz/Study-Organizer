@@ -1,7 +1,9 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-require("dotenv").config();
+if (!process.env.MONGODB_URI) {
+  require("dotenv").config();
+}
 
 const authRoute = require("./routes/auth");
 const contactRoute = require("./routes/contacts");
@@ -67,4 +69,3 @@ const port = process.env.PORT || 5000;
 app.listen(port, () => {
   console.log(`Backend läuft auf Port ${port}`);
 });
-

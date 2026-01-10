@@ -27,7 +27,7 @@ function auth(req, res, next) {
 
   try {
     // Token überprüfen
-    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded; // z. B. { id: user._id }
     next(); // Weiter zur Route
   } catch (err) {

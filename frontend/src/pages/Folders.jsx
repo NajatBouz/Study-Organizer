@@ -546,7 +546,7 @@ export default function Folders() {
           <div className={`rounded-2xl p-8 max-w-md w-full shadow-2xl border animate-fade-in ${
             isDarkMode ? 'bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 border-white/20' : 'bg-white border-gray-200'
           }`}>
-            <h2 className={`text-2xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{t("delete")} {t("folders").slice(0, -1)}?</h2>
+            <h2 className={`text-2xl font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Ordner {t("delete")}?</h2>
             <p className={`mb-8 ${isDarkMode ? 'text-blue-200' : 'text-gray-600'}`}>
               {t("deleteFolderConfirm")}
             </p>
