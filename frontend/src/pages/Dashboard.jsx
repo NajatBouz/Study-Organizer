@@ -232,7 +232,7 @@ export default function Dashboard() {
         </div>
 
         {nextEvent && (
-          <Link to="/events">
+          <Link to={`/events?highlight=${nextEvent._id}`}>
             <div className={`mb-8 rounded-2xl p-6 border backdrop-blur-sm cursor-pointer transition-all duration-300 hover:scale-[1.02] ${
               isDarkMode 
                 ? 'bg-gradient-to-r from-green-500/20 to-blue-500/20 border-green-400/30 hover:from-green-500/30 hover:to-blue-500/30' 

@@ -32,12 +32,12 @@ export default function Contacts() {
   useEffect(() => {
     loadContacts();
     
-    // Hier: highlight parameter
+    // Check for highlight parameter
     const params = new URLSearchParams(location.search);
     const highlight = params.get("highlight");
     if (highlight) {
       setHighlightId(highlight);
-      // Scroll zum highlight contact
+      // Scroll after short delay to ensure items are rendered
       setTimeout(() => {
         const element = contactRefs.current[highlight];
         if (element) {
@@ -45,8 +45,8 @@ export default function Contacts() {
         }
       }, 100);
       
-      // Hier entferne ich highlight nach 1,5 Sekunden
-      setTimeout(() => setHighlightId(null), 1500);
+      // Remove highlight after 3 seconds
+      setTimeout(() => setHighlightId(null), 3000);
     }
   }, [location]);
 
@@ -267,8 +267,8 @@ export default function Contacts() {
                     onClick={() => handleDelete(contact._id)}
                     className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md transition-all duration-200 border text-xs ${
                       isDarkMode
-                        ? 'bg-red-500/20 hover:bg-red-500/30 text-red-200 border-red-400/30'
-                        : 'bg-red-50 hover:bg-red-100 text-red-600 border-red-200'
+                        ? 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 border-blue-400/30'
+                        : 'bg-blue-50 hover:bg-blue-100 text-blue-600 border-blue-200'
                     }`}
                   >
                     <Trash2 className="w-3 h-3" />
@@ -443,7 +443,7 @@ export default function Contacts() {
               </button>
               <button
                 onClick={confirmDelete}
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg font-semibold"
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg font-semibold"
               >
                 {t("delete")}
               </button>

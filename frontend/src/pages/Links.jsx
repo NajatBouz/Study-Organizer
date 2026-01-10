@@ -41,7 +41,7 @@ export default function Links() {
           element.scrollIntoView({ behavior: "smooth", block: "center" });
         }
       }, 100);
-      setTimeout(() => setHighlightId(null), 1500);
+      setTimeout(() => setHighlightId(null), 3000);
     }
   }, [location]);
 
@@ -267,8 +267,8 @@ export default function Links() {
                     onClick={() => handleDelete(link._id)}
                     className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md transition-all duration-200 border text-xs ${
                       isDarkMode
-                        ? 'bg-red-500/20 hover:bg-red-500/30 text-red-200 border-red-400/30'
-                        : 'bg-red-50 hover:bg-red-100 text-red-600 border-red-200'
+                        ? 'bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 border-purple-400/30'
+                        : 'bg-purple-50 hover:bg-purple-100 text-purple-600 border-purple-200'
                     }`}
                   >
                     <Trash2 className="w-3 h-3" />
@@ -427,7 +427,7 @@ export default function Links() {
               </button>
               <button
                 onClick={confirmDelete}
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg font-semibold"
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg font-semibold"
               >
                 {t("delete")}
               </button>

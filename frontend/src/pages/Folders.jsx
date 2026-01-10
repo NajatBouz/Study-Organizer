@@ -41,7 +41,7 @@ export default function Folders() {
           element.scrollIntoView({ behavior: "smooth", block: "center" });
         }
       }, 100);
-      setTimeout(() => setHighlightId(null), 1500);
+      setTimeout(() => setHighlightId(null), 3000);
     }
   }, [location]);
 
@@ -120,13 +120,56 @@ export default function Folders() {
         responseType: "blob"
       });
       
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", originalName);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      // Get file extension
+      const extension = originalName.toLowerCase().split('.').pop();
+      
+      // Define viewable file types with their MIME types
+      const viewableTypes = {
+        // PDFs
+        'pdf': 'application/pdf',
+        // Images
+        'png': 'image/png',
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'gif': 'image/gif',
+        'webp': 'image/webp',
+        'svg': 'image/svg+xml',
+        'bmp': 'image/bmp',
+        // Text files
+        'txt': 'text/plain',
+        'md': 'text/markdown',
+        'json': 'application/json',
+        // Videos
+        'mp4': 'video/mp4',
+        'webm': 'video/webm',
+        // Audio
+        'mp3': 'audio/mpeg',
+        'wav': 'audio/wav',
+        'ogg': 'audio/ogg'
+      };
+      
+      const mimeType = viewableTypes[extension];
+      const isViewable = !!mimeType;
+      
+      // Create blob with correct MIME type
+      const blob = isViewable 
+        ? new Blob([response.data], { type: mimeType })
+        : new Blob([response.data]);
+      
+      const url = window.URL.createObjectURL(blob);
+      
+      if (isViewable) {
+        // Open viewable files in new tab
+        window.open(url, '_blank');
+      } else {
+        // Download non-viewable files
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", originalName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      }
     } catch (err) {
       setMessage(t("error"));
     }
@@ -345,8 +388,8 @@ export default function Folders() {
                           }}
                           className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-md transition-all duration-200 border text-xs ${
                             isDarkMode
-                              ? 'bg-red-500/20 hover:bg-red-500/30 text-red-200 border-red-400/30'
-                              : 'bg-red-50 hover:bg-red-100 text-red-600 border-red-200'
+                              ? 'bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 border-yellow-400/30'
+                              : 'bg-yellow-50 hover:bg-yellow-100 text-yellow-600 border-yellow-200'
                           }`}
                         >
                           <Trash2 className="w-3 h-3" />
@@ -377,7 +420,8 @@ export default function Folders() {
                 {files.map(file => (
                   <div
                     key={file._id}
-                    className={`rounded-lg p-4 border transition-all duration-300 hover:shadow-lg ${
+                    onClick={() => handleFileDownload(file._id, file.originalName)}
+                    className={`rounded-lg p-4 border transition-all duration-300 hover:shadow-lg cursor-pointer ${
                       isDarkMode
                         ? 'bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15'
                         : 'bg-white border-gray-200 shadow hover:shadow-xl'
@@ -402,7 +446,10 @@ export default function Folders() {
                       
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <button
-                          onClick={() => handleFileDownload(file._id, file.originalName)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleFileDownload(file._id, file.originalName);
+                          }}
                           className={`p-2 rounded-lg transition-all ${
                             isDarkMode
                               ? 'bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200'
@@ -413,11 +460,14 @@ export default function Folders() {
                           <Download className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleDeleteFile(file._id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteFile(file._id);
+                          }}
                           className={`p-2 rounded-lg transition-all ${
                             isDarkMode
-                              ? 'bg-red-500/20 hover:bg-red-500/30 text-red-200'
-                              : 'bg-red-50 hover:bg-red-100 text-red-600'
+                              ? 'bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200'
+                              : 'bg-yellow-50 hover:bg-yellow-100 text-yellow-600'
                           }`}
                           title={t("delete")}
                         >
@@ -504,7 +554,7 @@ export default function Folders() {
               <button onClick={() => { setShowDeleteFolderModal(false); setFolderToDelete(null); }} className={`flex-1 px-4 py-3 rounded-lg transition-all duration-200 font-medium ${isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
                 {t("cancel")}
               </button>
-              <button onClick={confirmDeleteFolder} className="flex-1 px-4 py-3 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg font-semibold">
+              <button onClick={confirmDeleteFolder} className="flex-1 px-4 py-3 bg-gradient-to-r from-yellow-600 to-yellow-800 hover:from-yellow-700 hover:to-yellow-900 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg font-semibold">
                 {t("delete")}
               </button>
             </div>
@@ -525,7 +575,7 @@ export default function Folders() {
               <button onClick={() => { setShowDeleteFileModal(false); setFileToDelete(null); }} className={`flex-1 px-4 py-3 rounded-lg transition-all duration-200 font-medium ${isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
                 {t("cancel")}
               </button>
-              <button onClick={confirmDeleteFile} className="flex-1 px-4 py-3 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg font-semibold">
+              <button onClick={confirmDeleteFile} className="flex-1 px-4 py-3 bg-gradient-to-r from-yellow-600 to-yellow-800 hover:from-yellow-700 hover:to-yellow-900 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg font-semibold">
                 {t("delete")}
               </button>
             </div>
