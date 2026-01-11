@@ -231,4 +231,4 @@ Entwickelt von Najat Bouerouata
 
 ---
 
-**Viel Erfolg beim Organisieren!**
+**Viel Erfolg beim Organisieren!**# CI/CD Pipeline aktiv!
