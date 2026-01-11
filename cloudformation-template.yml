@@ -114,6 +114,18 @@ Resources:
           echo "JWT_SECRET=${JWTSecret}" >> .env
           echo "PORT=5000" >> .env
           
+          # Wait for Elastic IP to be attached (CloudFormation does this after instance creation)
+          echo "Waiting for Elastic IP to be attached..."
+          sleep 30
+          
+          # Get public IP (will be the Elastic IP once attached)
+          PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
+          echo "Public IP detected: $PUBLIC_IP"
+          
+          # Create frontend .env with API URL
+          echo "VITE_API_URL=http://$PUBLIC_IP:5000/api" > frontend/.env
+          cat frontend/.env
+          
           # Set permissions
           chown -R ubuntu:ubuntu /home/ubuntu/Study-Organizer
           
