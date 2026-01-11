@@ -1,0 +1,151 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Study Organizer - Full Stack Application Deployment (Ubuntu)'
+
+Parameters:
+  KeyName:
+    Description: EC2 Key Pair for SSH access
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: Must be an existing EC2 KeyPair
+
+  MongoDBURI:
+    Description: MongoDB Atlas Connection String
+    Type: String
+    NoEcho: false
+
+  JWTSecret:
+    Description: JWT Secret Key
+    Type: String
+    NoEcho: true
+
+Resources:
+  # Security Group - Firewall Rules
+  StudyOrganizerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Study Organizer application
+      SecurityGroupIngress:
+        # SSH Access
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        # HTTP Access
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        # HTTPS Access
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        # Backend API
+        - IpProtocol: tcp
+          FromPort: 5000
+          ToPort: 5000
+          CidrIp: 0.0.0.0/0
+        # Frontend
+        - IpProtocol: tcp
+          FromPort: 5173
+          ToPort: 5173
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: StudyOrganizer-SecurityGroup
+
+  # EC2 Instance
+  StudyOrganizerInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.micro
+      ImageId: ami-0084a47cc718c111a  # Ubuntu 24.04 LTS in eu-central-1
+      KeyName: !Ref KeyName
+      SecurityGroupIds:
+        - !Ref StudyOrganizerSecurityGroup
+      Tags:
+        - Key: Name
+          Value: StudyOrganizer-Server
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -e
+          
+          # Log all output
+          exec > >(tee /var/log/user-data.log)
+          exec 2>&1
+          
+          echo "Starting deployment at $(date)"
+          
+          # Update system
+          apt-get update
+          apt-get upgrade -y
+          
+          # Install Docker
+          apt-get install -y ca-certificates curl gnupg
+          install -m 0755 -d /etc/apt/keyrings
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+          chmod a+r /etc/apt/keyrings/docker.gpg
+          
+          echo \
+            "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+            $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+            tee /etc/apt/sources.list.d/docker.list > /dev/null
+          
+          apt-get update
+          apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+          
+          # Start Docker
+          systemctl start docker
+          systemctl enable docker
+          
+          # Add ubuntu user to docker group
+          usermod -aG docker ubuntu
+          
+          # Install Git
+          apt-get install -y git
+          
+          # Clone repository as ubuntu user
+          cd /home/ubuntu
+          sudo -u ubuntu git clone https://github.com/NajatBouz/Study-Organizer.git
+          cd Study-Organizer
+          
+          # Create .env file with proper escaping
+          echo "MONGODB_URI=${MongoDBURI}" > .env
+          echo "JWT_SECRET=${JWTSecret}" >> .env
+          echo "PORT=5000" >> .env
+          
+          # Set permissions
+          chown -R ubuntu:ubuntu /home/ubuntu/Study-Organizer
+          
+          # Start application
+          sudo -u ubuntu docker compose up -d
+          
+          echo "Deployment completed at $(date)"
+
+  # Elastic IP
+  StudyOrganizerEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      InstanceId: !Ref StudyOrganizerInstance
+      Tags:
+        - Key: Name
+          Value: StudyOrganizer-EIP
+
+Outputs:
+  PublicIP:
+    Description: Public IP address of the EC2 instance
+    Value: !Ref StudyOrganizerEIP
+    Export:
+      Name: !Sub '${AWS::StackName}-PublicIP'
+
+  FrontendURL:
+    Description: Frontend URL
+    Value: !Sub 'http://${StudyOrganizerEIP}:5173'
+
+  BackendURL:
+    Description: Backend API URL
+    Value: !Sub 'http://${StudyOrganizerEIP}:5000'
+
+  SSHCommand:
+    Description: SSH command to connect to the instance
+    Value: !Sub 'ssh -i ${KeyName}.pem ubuntu@${StudyOrganizerEIP}'
