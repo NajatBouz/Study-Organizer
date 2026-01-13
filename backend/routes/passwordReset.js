@@ -2,14 +2,18 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const User = require("../models/User");
-const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
+const AWS = require("aws-sdk");
 
 const router = express.Router();
 
 // AWS SES Client konfigurieren
-const sesClient = new SESClient({ 
-  region: process.env.AWS_REGION || "eu-central-1"
+AWS.config.update({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION || "eu-central-1",
 });
+
+const ses = new AWS.SES();
 
 // Request password reset (generates token)
 router.post("/forgot-password", async (req, res) => {
@@ -36,7 +40,7 @@ router.post("/forgot-password", async (req, res) => {
     
     // Send email via AWS SES
     const emailParams = {
-      Source: process.env.SES_FROM_EMAIL, // Deine verifizierte Email
+      Source: process.env.SES_FROM_EMAIL,
       Destination: {
         ToAddresses: [user.email]
       },
@@ -66,8 +70,7 @@ router.post("/forgot-password", async (req, res) => {
     };
 
     try {
-      const command = new SendEmailCommand(emailParams);
-      await sesClient.send(command);
+      await ses.sendEmail(emailParams).promise();
       
       console.log(`✅ Password reset email sent to: ${user.email}`);
       
