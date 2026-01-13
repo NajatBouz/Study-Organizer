@@ -10,7 +10,7 @@ router.get("/folder/:folderId", authMiddleware, async (req, res) => {
   try {
     const files = await File.find({
       folderId: req.params.folderId,
-      userId: req.userId,
+      userId: req.user.id,
     });
     res.json(files);
   } catch (err) {
@@ -35,7 +35,7 @@ router.post("/upload", authMiddleware, upload.single("file"), async (req, res) =
       url: req.file.location, // S3 URL
       s3Key: req.file.key, // S3 object key for deletion
       folderId: folderId || null,
-      userId: req.userId,
+      userId: req.user.id,
     });
 
     await newFile.save();
@@ -50,7 +50,7 @@ router.post("/upload", authMiddleware, upload.single("file"), async (req, res) =
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const { folderId } = req.query;
-    const query = { userId: req.userId };
+    const query = { userId: req.user.id };
 
     if (folderId) {
       query.folderId = folderId;
@@ -69,7 +69,7 @@ router.get("/", authMiddleware, async (req, res) => {
 // Delete file
 router.delete("/:id", authMiddleware, async (req, res) => {
   try {
-    const file = await File.findOne({ _id: req.params.id, userId: req.userId });
+    const file = await File.findOne({ _id: req.params.id, userId: req.user.id });
 
     if (!file) {
       return res.status(404).json({ error: "Datei nicht gefunden" });
