@@ -22,6 +22,7 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         SES_FROM_EMAIL: ${{ secrets.SES_FROM_EMAIL }}
+        S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
       run: |
         # Setup SSH
         mkdir -p ~/.ssh
@@ -49,6 +50,7 @@ jobs:
           echo "SES_FROM_EMAIL=$SES_FROM_EMAIL" >> .env
           echo "AWS_REGION=eu-central-1" >> .env
           echo "FRONTEND_URL=http://$EC2_HOST:5173" >> .env
+          echo "S3_BUCKET_NAME=$S3_BUCKET_NAME" >> .env
           
           # Frontend .env with EC2_HOST from GitHub Secrets
           echo "VITE_API_URL=http://$EC2_HOST:5000/api" > frontend/.env
