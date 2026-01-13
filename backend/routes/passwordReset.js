@@ -2,8 +2,14 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const User = require("../models/User");
+const { SESClient, SendEmailCommand } = require("@aws-sdk/client-ses");
 
 const router = express.Router();
+
+// AWS SES Client konfigurieren
+const sesClient = new SESClient({ 
+  region: process.env.AWS_REGION || "eu-central-1"
+});
 
 // Request password reset (generates token)
 router.post("/forgot-password", async (req, res) => {
@@ -24,22 +30,68 @@ router.post("/forgot-password", async (req, res) => {
     user.resetPasswordExpires = Date.now() + 3600000; // 1 Stunde
     await user.save();
 
-    // In production, sende email hier mit dem reset link
-    // erst mal für meine Entwicklung, log den reset link
-    const resetUrl = `http://localhost:5173/reset-password?token=${resetToken}`;
+    // Get current domain (from environment or use EC2 IP)
+    const domain = process.env.FRONTEND_URL || "http://localhost:5173";
+    const resetUrl = `${domain}/reset-password?token=${resetToken}`;
     
-    console.log("\n=================================");
-    console.log("🔐 PASSWORD RESET TOKEN");
-    console.log("=================================");
-    console.log(`User: ${user.email}`);
-    console.log(`Reset Link: ${resetUrl}`);
-    console.log(`Token expires in: 1 hour`);
-    console.log("=================================\n");
+    // Send email via AWS SES
+    const emailParams = {
+      Source: process.env.SES_FROM_EMAIL, // Deine verifizierte Email
+      Destination: {
+        ToAddresses: [user.email]
+      },
+      Message: {
+        Subject: {
+          Data: "Study Organizer - Passwort zurücksetzen",
+          Charset: "UTF-8"
+        },
+        Body: {
+          Html: {
+            Data: `
+              <h2>Passwort zurücksetzen</h2>
+              <p>Du hast eine Passwort-Zurücksetzung angefordert.</p>
+              <p>Klicke auf den folgenden Link, um dein Passwort zurückzusetzen:</p>
+              <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">
+                Passwort zurücksetzen
+              </a>
+              <p>Dieser Link ist 1 Stunde gültig.</p>
+              <p>Falls du diese Anfrage nicht gestellt hast, ignoriere diese Email.</p>
+              <br>
+              <p style="color: #666; font-size: 12px;">Study Organizer App</p>
+            `,
+            Charset: "UTF-8"
+          }
+        }
+      }
+    };
 
-    res.json({ 
-      message: "Passwort-Reset angefordert. Token wurde in der Console ausgegeben.",
-      resetUrl // Nur fürs Projekt erst!
-    });
+    try {
+      const command = new SendEmailCommand(emailParams);
+      await sesClient.send(command);
+      
+      console.log(`✅ Password reset email sent to: ${user.email}`);
+      
+      res.json({ 
+        message: "Eine Email mit Anweisungen zum Zurücksetzen des Passworts wurde an deine Email-Adresse gesendet."
+      });
+    } catch (emailError) {
+      console.error("❌ Email sending failed:", emailError);
+      
+      // Fallback: Log to console (nur für Development)
+      if (process.env.NODE_ENV === 'development') {
+        console.log("\n=================================");
+        console.log("🔐 PASSWORD RESET TOKEN (Email failed, showing here)");
+        console.log("=================================");
+        console.log(`User: ${user.email}`);
+        console.log(`Reset Link: ${resetUrl}`);
+        console.log(`Token expires in: 1 hour`);
+        console.log("=================================\n");
+      }
+      
+      res.status(500).json({ 
+        error: "Email konnte nicht gesendet werden. Bitte später erneut versuchen." 
+      });
+    }
 
   } catch (err) {
     console.error(err);
@@ -59,7 +111,7 @@ router.post("/reset-password", async (req, res) => {
     // Hash den token zum vergleich mit Datenbank
     const resetTokenHash = crypto.createHash("sha256").update(token).digest("hex");
 
-    // Finde den user mit  validen token
+    // Finde den user mit validen token
     const user = await User.findOne({
       resetPasswordToken: resetTokenHash,
       resetPasswordExpires: { $gt: Date.now() }
