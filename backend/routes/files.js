@@ -5,6 +5,20 @@ const authMiddleware = require("../middleware/auth");
 
 const router = express.Router();
 
+// Get all files for a folder (backwards compatibility)
+router.get("/folder/:folderId", authMiddleware, async (req, res) => {
+  try {
+    const files = await File.find({
+      folderId: req.params.folderId,
+      userId: req.userId,
+    });
+    res.json(files);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server-Fehler" });
+  }
+});
+
 // Upload file to S3
 router.post("/upload", authMiddleware, upload.single("file"), async (req, res) => {
   try {
