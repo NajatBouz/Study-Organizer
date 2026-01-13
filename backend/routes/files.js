@@ -1,17 +1,66 @@
 const express = require("express");
-const { upload } = require("../uploadConfig");
-const File = require("../models/File");
-const authMiddleware = require("../middleware/auth");
-
 const router = express.Router();
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+const File = require("../models/File");
+const auth = require("../middleware/auth");
 
-// Get all files for a folder (backwards compatibility)
-router.get("/folder/:folderId", authMiddleware, async (req, res) => {
+// Uploads Ordner erstellen falls nicht vorhanden
+const uploadsDir = path.join(__dirname, "../uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Multer Storage Konfiguration
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + "-" + file.originalname);
+  }
+});
+
+// File Filter
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = [
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.ms-powerpoint",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    "text/plain",
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+    "application/zip",
+    "application/x-rar-compressed"
+  ];
+
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Dateityp nicht erlaubt!"), false);
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: { fileSize: 10 * 1024 * 1024 }
+});
+
+router.get("/folder/:folderId", auth, async (req, res) => {
   try {
     const files = await File.find({
       folderId: req.params.folderId,
-      userId: req.user.id,
-    });
+      userId: req.user.id
+    }).sort({ createdAt: -1 });
     res.json(files);
   } catch (err) {
     console.error(err);
@@ -19,83 +68,65 @@ router.get("/folder/:folderId", authMiddleware, async (req, res) => {
   }
 });
 
-// Upload file to S3
-router.post("/upload", authMiddleware, upload.single("file"), async (req, res) => {
+router.post("/upload", auth, upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "Keine Datei hochgeladen" });
     }
+    if (!req.body.folderId) {
+      return res.status(400).json({ error: "Ordner ID fehlt" });
+    }
 
-    const { folderId } = req.body;
-
-    // File is already uploaded to S3 by multer-s3
-    // req.file.location contains the S3 URL
     const newFile = new File({
-      name: req.file.originalname,
-      url: req.file.location, // S3 URL
-      s3Key: req.file.key, // S3 object key for deletion
-      folderId: folderId || null,
-      userId: req.user.id,
+      filename: req.file.filename,
+      originalName: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size,
+      path: req.file.path,
+      folderId: req.body.folderId,
+      userId: req.user.id
     });
 
     await newFile.save();
-    res.json(newFile);
+    res.status(201).json(newFile);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server-Fehler" });
   }
 });
 
-// Get all files for a user
-router.get("/", authMiddleware, async (req, res) => {
+router.get("/download/:id", auth, async (req, res) => {
   try {
-    const { folderId } = req.query;
-    const query = { userId: req.user.id };
-
-    if (folderId) {
-      query.folderId = folderId;
-    } else {
-      query.folderId = null;
-    }
-
-    const files = await File.find(query);
-    res.json(files);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server-Fehler" });
-  }
-});
-
-// Delete file
-router.delete("/:id", authMiddleware, async (req, res) => {
-  try {
-    const file = await File.findOne({ _id: req.params.id, userId: req.user.id });
-
+    const file = await File.findOne({
+      _id: req.params.id,
+      userId: req.user.id
+    });
     if (!file) {
       return res.status(404).json({ error: "Datei nicht gefunden" });
     }
-
-    // Delete from S3
-    const { DeleteObjectCommand } = require("@aws-sdk/client-s3");
-    const { s3Client } = require("../uploadConfig");
-
-    if (file.s3Key) {
-      const deleteParams = {
-        Bucket: process.env.S3_BUCKET_NAME,
-        Key: file.s3Key,
-      };
-
-      try {
-        await s3Client.send(new DeleteObjectCommand(deleteParams));
-        console.log(`✅ File deleted from S3: ${file.s3Key}`);
-      } catch (s3Error) {
-        console.error("❌ S3 deletion failed:", s3Error);
-        // Continue with database deletion even if S3 fails
-      }
+    if (!fs.existsSync(file.path)) {
+      return res.status(404).json({ error: "Datei existiert nicht" });
     }
+    res.download(file.path, file.originalName);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server-Fehler" });
+  }
+});
 
-    // Delete from database
-    await File.deleteOne({ _id: req.params.id });
+router.delete("/:id", auth, async (req, res) => {
+  try {
+    const file = await File.findOne({
+      _id: req.params.id,
+      userId: req.user.id
+    });
+    if (!file) {
+      return res.status(404).json({ error: "Datei nicht gefunden" });
+    }
+    if (fs.existsSync(file.path)) {
+      fs.unlinkSync(file.path);
+    }
+    await file.deleteOne();
     res.json({ message: "Datei gelöscht" });
   } catch (err) {
     console.error(err);
