@@ -28,6 +28,20 @@ export default function Events() {
     description: ""
   });
 
+  // Hilfsfunktionen für Datum/Uhrzeit
+  const toLocalDateTime = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const tzOffset = date.getTimezoneOffset() * 60000;
+    return new Date(date - tzOffset).toISOString().slice(0, 16);
+  };
+
+  const localToUTC = (localDateTime) => {
+    if (!localDateTime) return "";
+    const date = new Date(localDateTime);
+    return date.toISOString();
+  };
+
   useEffect(() => {
     loadEvents();
     
@@ -37,9 +51,7 @@ export default function Events() {
       setHighlightId(highlight);
       setTimeout(() => {
         const element = eventRefs.current[highlight];
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
+        if (element) element.scrollIntoView({ behavior: "smooth", block: "center" });
       }, 100);
       setTimeout(() => setHighlightId(null), 3000);
     }
@@ -59,16 +71,22 @@ export default function Events() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
+      const payload = {
+        ...formData,
+        start: localToUTC(formData.start),
+        end: localToUTC(formData.end)
+      };
+
       if (editingEvent) {
-        await api.put(`/events/${editingEvent._id}`, formData);
+        await api.put(`/events/${editingEvent._id}`, payload);
         setMessage(t("eventUpdated"));
       } else {
-        await api.post("/events", formData);
+        await api.post("/events", payload);
         setMessage(t("eventCreated"));
       }
-      
+
       loadEvents();
       closeModal();
     } catch (err) {
@@ -106,8 +124,8 @@ export default function Events() {
   const openEditModal = (event) => {
     setFormData({
       title: event.title || "",
-      start: event.start ? new Date(event.start).toISOString().slice(0, 16) : "",
-      end: event.end ? new Date(event.end).toISOString().slice(0, 16) : "",
+      start: toLocalDateTime(event.start),
+      end: toLocalDateTime(event.end),
       description: event.description || ""
     });
     setEditingEvent(event);
@@ -121,6 +139,7 @@ export default function Events() {
   };
 
   const formatDateTime = (dateString) => {
+    if (!dateString) return "-";
     const date = new Date(dateString);
     return date.toLocaleDateString("de-DE", { 
       day: "2-digit", 
@@ -140,90 +159,49 @@ export default function Events() {
       <Navbar title={t("myEvents")} subtitle={`${events.length} ${t("eventsSaved")}`} />
 
       <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-        
+        {/* Navigation / Buttons */}
         <div className="flex items-center justify-start gap-4 mb-6">
-          <button
-            onClick={() => navigate("/dashboard")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${
-              isDarkMode
-                ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
-                : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 shadow-sm'
-            }`}
-          >
+          <button onClick={() => navigate("/dashboard")} className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 ${isDarkMode ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20' : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 shadow-sm'}`}>
             <ArrowLeft className="w-4 h-4" />
             <span className="font-medium">{t("back")}</span>
           </button>
 
-          <button
-            onClick={openAddModal}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
-          >
+          <button onClick={openAddModal} className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg">
             <Plus className="w-5 h-5" />
             <span className="font-semibold">{t("addEvent")}</span>
           </button>
         </div>
 
+        {/* Message */}
         {message && (
-          <div className={`mb-6 p-4 rounded-lg ${
-            message.includes(t("success")) || message.includes("erfolgreich") || message.includes("successfully")
-              ? isDarkMode ? "bg-green-500/20 text-green-200 border border-green-400/30" : "bg-green-100 text-green-700 border border-green-300"
-              : isDarkMode ? "bg-red-500/20 text-red-200 border border-red-400/30" : "bg-red-100 text-red-700 border border-red-300"
-          }`}>
+          <div className={`mb-6 p-4 rounded-lg ${message.includes(t("success")) || message.includes("erfolgreich") || message.includes("successfully") ? isDarkMode ? "bg-green-500/20 text-green-200 border border-green-400/30" : "bg-green-100 text-green-700 border border-green-300" : isDarkMode ? "bg-red-500/20 text-red-200 border border-red-400/30" : "bg-red-100 text-red-700 border border-red-300"}`}>
             {message}
           </div>
         )}
 
+        {/* Event Grid */}
         {events.length === 0 ? (
           <div className="text-center py-20 mt-16">
             <Calendar className={`w-20 h-20 mx-auto mb-4 opacity-50 ${isDarkMode ? 'text-green-300' : 'text-gray-400'}`} />
-            <h3 className={`text-2xl font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              {t("noEvents")}
-            </h3>
-            <p className={`mb-6 ${isDarkMode ? 'text-green-200' : 'text-gray-600'}`}>
-              {t("addFirstEvent")}
-            </p>
-            <button
-              onClick={openAddModal}
-              className="px-6 py-3 bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg font-semibold"
-            >
+            <h3 className={`text-2xl font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{t("noEvents")}</h3>
+            <p className={`mb-6 ${isDarkMode ? 'text-green-200' : 'text-gray-600'}`}>{t("addFirstEvent")}</p>
+            <button onClick={openAddModal} className="px-6 py-3 bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg font-semibold">
               {t("addEvent")}
             </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-16">
             {events.map(event => (
-              <div
-                key={event._id}
-                ref={el => eventRefs.current[event._id] = el}
-                className={`rounded-lg p-4 border transition-all duration-300 hover:shadow-xl hover:scale-105 ${
-                  highlightId === event._id
-                    ? isDarkMode 
-                      ? 'bg-green-500/30 border-green-400 shadow-2xl shadow-green-500/50 scale-105'
-                      : 'bg-green-100 border-green-400 shadow-2xl shadow-green-300/50 scale-105'
-                    : isDarkMode
-                      ? 'bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15'
-                      : 'bg-white border-gray-200 shadow-lg hover:shadow-xl'
-                } ${isUpcoming(event.start) ? '' : 'opacity-75'}`}
-              >
+              <div key={event._id} ref={el => eventRefs.current[event._id] = el} className={`rounded-lg p-4 border transition-all duration-300 hover:shadow-xl hover:scale-105 ${highlightId === event._id ? isDarkMode ? 'bg-green-500/30 border-green-400 shadow-2xl shadow-green-500/50 scale-105' : 'bg-green-100 border-green-400 shadow-2xl shadow-green-300/50 scale-105' : isDarkMode ? 'bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15' : 'bg-white border-gray-200 shadow-lg hover:shadow-xl'} ${isUpcoming(event.start) ? '' : 'opacity-75'}`}>
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2 flex-1">
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center ${
-                      isUpcoming(event.start)
-                        ? isDarkMode ? 'bg-gradient-to-br from-green-400 to-green-600' : 'bg-gradient-to-br from-green-500 to-green-700'
-                        : isDarkMode ? 'bg-gradient-to-br from-gray-400 to-gray-600' : 'bg-gradient-to-br from-gray-500 to-gray-700'
-                    }`}>
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center ${isUpcoming(event.start) ? isDarkMode ? 'bg-gradient-to-br from-green-400 to-green-600' : 'bg-gradient-to-br from-green-500 to-green-700' : isDarkMode ? 'bg-gradient-to-br from-gray-400 to-gray-600' : 'bg-gradient-to-br from-gray-500 to-gray-700'}`}>
                       <Calendar className="w-4 h-4 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className={`text-base font-bold truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                        {event.title}
-                      </h3>
+                      <h3 className={`text-base font-bold truncate ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{event.title}</h3>
                       {isUpcoming(event.start) && (
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${
-                          isDarkMode ? 'bg-green-500/20 text-green-200' : 'bg-green-100 text-green-700'
-                        }`}>
-                          {t("upcoming")}
-                        </span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${isDarkMode ? 'bg-green-500/20 text-green-200' : 'bg-green-100 text-green-700'}`}>{t("upcoming")}</span>
                       )}
                     </div>
                   </div>
@@ -247,25 +225,11 @@ export default function Events() {
                 </div>
 
                 <div className={`flex gap-1.5 pt-3 border-t ${isDarkMode ? 'border-white/10' : 'border-gray-200'}`}>
-                  <button
-                    onClick={() => openEditModal(event)}
-                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md transition-all duration-200 border text-xs ${
-                      isDarkMode
-                        ? 'bg-green-500/20 hover:bg-green-500/30 text-green-200 border-green-400/30'
-                        : 'bg-green-50 hover:bg-green-100 text-green-600 border-green-200'
-                    }`}
-                  >
+                  <button onClick={() => openEditModal(event)} className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md transition-all duration-200 border text-xs ${isDarkMode ? 'bg-green-500/20 hover:bg-green-500/30 text-green-200 border-green-400/30' : 'bg-green-50 hover:bg-green-100 text-green-600 border-green-200'}`}>
                     <Edit2 className="w-3 h-3" />
                     <span className="font-medium">{t("edit")}</span>
                   </button>
-                  <button
-                    onClick={() => handleDelete(event._id)}
-                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md transition-all duration-200 border text-xs ${
-                      isDarkMode
-                        ? 'bg-green-500/20 hover:bg-green-500/30 text-green-200 border-green-400/30'
-                        : 'bg-green-50 hover:bg-green-100 text-green-600 border-green-200'
-                    }`}
-                  >
+                  <button onClick={() => handleDelete(event._id)} className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md transition-all duration-200 border text-xs ${isDarkMode ? 'bg-green-500/20 hover:bg-green-500/30 text-green-200 border-green-400/30' : 'bg-green-50 hover:bg-green-100 text-green-600 border-green-200'}`}>
                     <Trash2 className="w-3 h-3" />
                     <span className="font-medium">{t("delete")}</span>
                   </button>
@@ -276,113 +240,43 @@ export default function Events() {
         )}
       </div>
 
+      {/* Add/Edit Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className={`rounded-2xl p-8 max-w-md w-full shadow-2xl border animate-fade-in ${
-            isDarkMode
-              ? 'bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 border-white/20'
-              : 'bg-white border-gray-200'
-          }`}>
+          <div className={`rounded-2xl p-8 max-w-md w-full shadow-2xl border animate-fade-in ${isDarkMode ? 'bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 border-white/20' : 'bg-white border-gray-200'}`}>
             <div className="flex items-center justify-between mb-6">
               <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                 {editingEvent ? t("editEvent") : t("newEvent")}
               </h2>
-              <button
-                onClick={closeModal}
-                className={`p-2 rounded-lg transition-colors ${
-                  isDarkMode ? 'hover:bg-white/10' : 'hover:bg-gray-100'
-                }`}
-              >
+              <button onClick={closeModal} className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}>
                 <X className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-gray-900'}`} />
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-green-200' : 'text-gray-700'}`}>
-                  {t("title")} *
-                </label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  required
-                  className={`w-full px-4 py-3 rounded-lg border transition-all ${
-                    isDarkMode
-                      ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:ring-green-500'
-                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-green-500'
-                  } focus:outline-none focus:ring-2 focus:border-transparent`}
-                  placeholder="z.B. Meeting mit Professor"
-                />
+                <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-green-200' : 'text-gray-700'}`}>{t("title")} *</label>
+                <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} required className={`w-full px-4 py-3 rounded-lg border transition-all ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:ring-green-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-green-500'} focus:outline-none focus:ring-2 focus:border-transparent`} placeholder="z.B. Meeting mit Professor" />
               </div>
 
               <div>
-                <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-green-200' : 'text-gray-700'}`}>
-                  {t("startTime")} *
-                </label>
-                <input
-                  type="datetime-local"
-                  value={formData.start}
-                  onChange={(e) => setFormData({ ...formData, start: e.target.value })}
-                  required
-                  className={`w-full px-4 py-3 rounded-lg border transition-all ${
-                    isDarkMode
-                      ? 'bg-slate-700 border-slate-600 text-white focus:ring-green-500'
-                      : 'bg-white border-gray-300 text-gray-900 focus:ring-green-500'
-                  } focus:outline-none focus:ring-2 focus:border-transparent`}
-                />
+                <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-green-200' : 'text-gray-700'}`}>{t("startTime")} *</label>
+                <input type="datetime-local" value={formData.start} onChange={(e) => setFormData({ ...formData, start: e.target.value })} required className={`w-full px-4 py-3 rounded-lg border transition-all ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white focus:ring-green-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-green-500'} focus:outline-none focus:ring-2 focus:border-transparent`} />
               </div>
 
               <div>
-                <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-green-200' : 'text-gray-700'}`}>
-                  {t("endTime")} *
-                </label>
-                <input
-                  type="datetime-local"
-                  value={formData.end}
-                  onChange={(e) => setFormData({ ...formData, end: e.target.value })}
-                  required
-                  className={`w-full px-4 py-3 rounded-lg border transition-all ${
-                    isDarkMode
-                      ? 'bg-slate-700 border-slate-600 text-white focus:ring-green-500'
-                      : 'bg-white border-gray-300 text-gray-900 focus:ring-green-500'
-                  } focus:outline-none focus:ring-2 focus:border-transparent`}
-                />
+                <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-green-200' : 'text-gray-700'}`}>{t("endTime")} *</label>
+                <input type="datetime-local" value={formData.end} onChange={(e) => setFormData({ ...formData, end: e.target.value })} required className={`w-full px-4 py-3 rounded-lg border transition-all ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white focus:ring-green-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-green-500'} focus:outline-none focus:ring-2 focus:border-transparent`} />
               </div>
 
               <div>
-                <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-green-200' : 'text-gray-700'}`}>
-                  {t("description")}
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows="3"
-                  className={`w-full px-4 py-3 rounded-lg border transition-all ${
-                    isDarkMode
-                      ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:ring-green-500'
-                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-green-500'
-                  } focus:outline-none focus:ring-2 focus:border-transparent`}
-                  placeholder="Optionale Details zum Termin..."
-                />
+                <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-green-200' : 'text-gray-700'}`}>{t("description")}</label>
+                <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows="3" className={`w-full px-4 py-3 rounded-lg border transition-all ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:ring-green-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-green-500'} focus:outline-none focus:ring-2 focus:border-transparent`} placeholder="Optionale Details zum Termin..." />
               </div>
 
               <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className={`flex-1 px-4 py-3 rounded-lg transition-all duration-200 font-medium ${
-                    isDarkMode
-                      ? 'bg-slate-700 hover:bg-slate-600 text-white'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                  }`}
-                >
-                  {t("cancel")}
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg font-semibold"
-                >
+                <button type="button" onClick={closeModal} className={`flex-1 px-4 py-3 rounded-lg transition-all duration-200 font-medium ${isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>{t("cancel")}</button>
+                <button type="submit" className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg font-semibold">
                   <Save className="w-5 h-5" />
                   {editingEvent ? t("update") : t("add")}
                 </button>
@@ -392,60 +286,19 @@ export default function Events() {
         </div>
       )}
 
+      {/* Delete Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className={`rounded-2xl p-8 max-w-md w-full shadow-2xl border animate-fade-in ${
-            isDarkMode
-              ? 'bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 border-white/20'
-              : 'bg-white border-gray-200'
-          }`}>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                {t("delete")} {t("events").slice(0, -1)}?
-              </h2>
-            </div>
-            <p className={`mb-8 ${isDarkMode ? 'text-blue-200' : 'text-gray-600'}`}>
-              {t("deleteEventConfirm")}
-            </p>
+          <div className={`bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-2xl max-w-sm w-full`}>
+            <h3 className={`text-lg font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{t("confirmDelete")}</h3>
+            <p className={`mb-6 ${isDarkMode ? 'text-green-200' : 'text-gray-700'}`}>{t("deleteEventWarning")}</p>
             <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setEventToDelete(null);
-                }}
-                className={`flex-1 px-4 py-3 rounded-lg transition-all duration-200 font-medium ${
-                  isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                }`}
-              >
-                {t("cancel")}
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-green-600 to-green-800 hover:from-green-700 hover:to-green-900 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg font-semibold"
-              >
-                {t("delete")}
-              </button>
+              <button onClick={() => setShowDeleteModal(false)} className={`flex-1 px-4 py-2 rounded-lg ${isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>{t("cancel")}</button>
+              <button onClick={confirmDelete} className="flex-1 px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white">{t("delete")}</button>
             </div>
           </div>
         </div>
       )}
-
-      <style>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: scale(0.95);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-
-        .animate-fade-in {
-          animation: fade-in 0.2s ease-out;
-        }
-      `}</style>
 
       <Footer />
     </div>
