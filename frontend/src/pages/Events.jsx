@@ -316,7 +316,7 @@ export default function Events() {
 
               <div>
                 <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-blue-200' : 'text-gray-700'}`}>
-                  {t("description")}
+                  Notiz
                 </label>
                 <textarea
                   value={formData.description}
@@ -363,13 +363,13 @@ export default function Events() {
               ? 'bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 border-white/20'
               : 'bg-white border-gray-200'
           }`}>
-            <div className="flex items-center justify-between mb-6">
+            <div className="mb-6">
               <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                {t("confirmDelete")}
+                Löschen Termin?
               </h2>
             </div>
             <p className={`mb-8 ${isDarkMode ? 'text-blue-200' : 'text-gray-600'}`}>
-              {t("deleteEventWarning")}
+              Möchtest du diesen Termin wirklich löschen?
             </p>
             <div className="flex gap-3">
               <button
