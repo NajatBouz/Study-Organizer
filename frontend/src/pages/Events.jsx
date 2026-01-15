@@ -242,47 +242,113 @@ export default function Events() {
 
       {/* Add/Edit Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className={`w-full max-w-md rounded-2xl p-6 md:p-8 shadow-2xl border animate-fade-in 
-            ${isDarkMode ? 'bg-gradient-to-br from-blue-700 via-blue-800 to-blue-900 border-white/20' : 'bg-blue-500 border-gray-200'}`}>
-            
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className={`rounded-2xl p-8 max-w-md w-full shadow-2xl border animate-fade-in ${
+            isDarkMode
+              ? 'bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 border-white/20'
+              : 'bg-white border-gray-200'
+          }`}>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">
+              <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
                 {editingEvent ? t("editEvent") : t("newEvent")}
               </h2>
-              <button onClick={closeModal} className="p-2 rounded-lg hover:bg-blue-600 transition">
-                <X className="w-6 h-6 text-white" />
+              <button
+                onClick={closeModal}
+                className={`p-2 rounded-lg transition-colors ${
+                  isDarkMode ? 'hover:bg-white/10' : 'hover:bg-gray-100'
+                }`}
+              >
+                <X className={`w-6 h-6 ${isDarkMode ? 'text-white' : 'text-gray-900'}`} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1 text-white">{t("title")} *</label>
-                <input type="text" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} required
-                  className="w-full px-4 py-2 rounded-lg border border-blue-300 bg-blue-600 text-white placeholder-blue-200 focus:ring-2 focus:ring-green-500 focus:outline-none" />
+                <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-blue-200' : 'text-gray-700'}`}>
+                  {t("title")} *
+                </label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData({...formData, title: e.target.value})}
+                  required
+                  className={`w-full px-4 py-3 rounded-lg border transition-all ${
+                    isDarkMode
+                      ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:ring-green-500'
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-green-500'
+                  } focus:outline-none focus:ring-2 focus:border-transparent`}
+                />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1 text-white">{t("startTime")} *</label>
-                <input type="datetime-local" value={formData.start} onChange={(e) => setFormData({...formData, start: e.target.value})} required
-                  className="w-full px-4 py-2 rounded-lg border border-blue-300 bg-blue-600 text-white focus:ring-2 focus:ring-green-500 focus:outline-none" />
+                <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-blue-200' : 'text-gray-700'}`}>
+                  {t("startTime")} *
+                </label>
+                <input
+                  type="datetime-local"
+                  value={formData.start}
+                  onChange={(e) => setFormData({...formData, start: e.target.value})}
+                  required
+                  className={`w-full px-4 py-3 rounded-lg border transition-all ${
+                    isDarkMode
+                      ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:ring-green-500'
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-green-500'
+                  } focus:outline-none focus:ring-2 focus:border-transparent`}
+                />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1 text-white">{t("endTime")} *</label>
-                <input type="datetime-local" value={formData.end} onChange={(e) => setFormData({...formData, end: e.target.value})} required
-                  className="w-full px-4 py-2 rounded-lg border border-blue-300 bg-blue-600 text-white focus:ring-2 focus:ring-green-500 focus:outline-none" />
+                <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-blue-200' : 'text-gray-700'}`}>
+                  {t("endTime")} *
+                </label>
+                <input
+                  type="datetime-local"
+                  value={formData.end}
+                  onChange={(e) => setFormData({...formData, end: e.target.value})}
+                  required
+                  className={`w-full px-4 py-3 rounded-lg border transition-all ${
+                    isDarkMode
+                      ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:ring-green-500'
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-green-500'
+                  } focus:outline-none focus:ring-2 focus:border-transparent`}
+                />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1 text-white">{t("description")}</label>
-                <textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} rows="3"
-                  className="w-full px-4 py-2 rounded-lg border border-blue-300 bg-blue-600 text-white placeholder-blue-200 focus:ring-2 focus:ring-green-500 focus:outline-none" />
+                <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-blue-200' : 'text-gray-700'}`}>
+                  {t("description")}
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  rows="3"
+                  className={`w-full px-4 py-3 rounded-lg border transition-all ${
+                    isDarkMode
+                      ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus:ring-green-500'
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-green-500'
+                  } focus:outline-none focus:ring-2 focus:border-transparent`}
+                />
               </div>
 
               <div className="flex gap-3 pt-4">
-                <button type="button" onClick={closeModal} className="flex-1 px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white transition">{t("cancel")}</button>
-                <button type="submit" className="flex-1 px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white font-semibold transition">{editingEvent ? t("update") : t("add")}</button>
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className={`flex-1 px-4 py-3 rounded-lg transition-all duration-200 font-medium ${
+                    isDarkMode
+                      ? 'bg-slate-700 hover:bg-slate-600 text-white'
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                  }`}
+                >
+                  {t("cancel")}
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-500 to-green-700 hover:from-green-600 hover:to-green-800 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg font-semibold"
+                >
+                  <Save className="w-5 h-5" />
+                  {editingEvent ? t("update") : t("add")}
+                </button>
               </div>
             </form>
           </div>
@@ -291,17 +357,59 @@ export default function Events() {
 
       {/* Delete Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className={`w-full max-w-sm rounded-2xl p-6 shadow-2xl border ${isDarkMode ? 'bg-slate-900 border-white/20' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{t("confirmDelete")}</h3>
-            <p className={`mb-6 ${isDarkMode ? 'text-green-200' : 'text-gray-700'}`}>{t("deleteEventWarning")}</p>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className={`rounded-2xl p-8 max-w-md w-full shadow-2xl border animate-fade-in ${
+            isDarkMode
+              ? 'bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 border-white/20'
+              : 'bg-white border-gray-200'
+          }`}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                {t("confirmDelete")}
+              </h2>
+            </div>
+            <p className={`mb-8 ${isDarkMode ? 'text-blue-200' : 'text-gray-600'}`}>
+              {t("deleteEventWarning")}
+            </p>
             <div className="flex gap-3">
-              <button onClick={() => setShowDeleteModal(false)} className={`flex-1 px-4 py-2 rounded-lg ${isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>{t("cancel")}</button>
-              <button onClick={confirmDelete} className="flex-1 px-4 py-2 rounded-lg bg-green-500 hover:bg-green-600 text-white font-semibold transition">{t("delete")}</button>
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setEventToDelete(null);
+                }}
+                className={`flex-1 px-4 py-3 rounded-lg transition-all duration-200 font-medium ${
+                  isDarkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                }`}
+              >
+                {t("cancel")}
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-green-600 to-green-800 hover:from-green-700 hover:to-green-900 text-white rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg font-semibold"
+              >
+                {t("delete")}
+              </button>
             </div>
           </div>
         </div>
       )}
+
+      <style>{`
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        .animate-fade-in {
+          animation: fade-in 0.2s ease-out;
+        }
+      `}</style>
 
       <Footer />
     </div>
